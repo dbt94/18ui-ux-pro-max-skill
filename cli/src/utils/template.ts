@@ -294,10 +294,20 @@ export async function generatePlatformFiles(
  */
 export async function generateAllPlatformFiles(targetDir: string, isGlobal = false, force = false): Promise<string[]> {
   const allFolders = new Set<string>();
+  const generatedSkillFiles = new Set<string>();
 
   for (const aiType of Object.keys(AI_TO_PLATFORM)) {
     try {
+      const config = await loadPlatformConfig(aiType);
+      const skillFile = join(
+        config.folderStructure.root,
+        config.folderStructure.skillPath,
+        config.folderStructure.filename
+      );
+      if (generatedSkillFiles.has(skillFile)) continue;
+
       const folders = await generatePlatformFiles(targetDir, aiType, isGlobal, force);
+      generatedSkillFiles.add(skillFile);
       folders.forEach(f => allFolders.add(f));
     } catch {
       // Skip if generation fails for a platform
